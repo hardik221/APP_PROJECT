@@ -24,55 +24,21 @@ try:
     #Fetch data from database
     data = cursor.execute("SELECT * FROM person2").fetchall()
     print("SQLite Database Version is: ", data)
-    # insert_stmt = (
-    #     "INSERT INTO employees (emp_no, first_name, last_name, hire_date) "
-    #     "VALUES (%s, %s, %s, %s)"
-    # )
-    # data = (2, 'Jane', 'Doe', datetime.date(2012, 3, 23))
-    # cursor.execute(insert_stmt, data)
-    #
-    # select_stmt = "SELECT * FROM employees WHERE emp_no = %(emp_no)s"
-    # cursor.execute(select_stmt, {'emp_no': 2})
-
-
     cursor.close()
 
 except sqlite3.Error as error:
     print("Error while connecting to sqlite", error)
 
 
-# params = {
-#     'access_key': 'dbf7c159c9b2868f6facff6675e35775'
-# }
-# result = requests.get('http://api.aviationstack.com/v1/flights', params)
-# #result = requests.get('https://developer.nrel.gov/api/alt-fuel-stations/v1.json?fuel_type=E85,ELEC&state=CA&limit=2&api_key=QXk4ANLmbHnN47NYHufiEdbpOLd4UuESri3mZT7C')
-#
-# data = json.loads(result.text)
-# print(data)
-# columns = ['pagination','total_results','station_counts']
-# for row in data:
-#     keys= tuple(row[c] for c in columns)
-#     cursor.execute('insert into Student values(?,?,?)',keys)
-#     print(f'{row["name"]} data inserted Succefully')
-#
-# connection.commit()
-# connection.close()
 
-url = "https://hotels4.p.rapidapi.com/v2/get-meta-data"
+url = "https://movies-app1.p.rapidapi.com/api/movies"
 
 headers = {
 	"X-RapidAPI-Key": "45ece162f9msh277df8c13051d12p1ec734jsn3ec541518ff1",
-	"X-RapidAPI-Host": "hotels4.p.rapidapi.com"
+	"X-RapidAPI-Host": "movies-app1.p.rapidapi.com"
 }
 
 response = requests.request("GET", url, headers=headers)
 
 print(response.text)
-
-
-
-
-
-
-
 
