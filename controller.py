@@ -1,80 +1,95 @@
-# Step 1 start by importing the code
 import requests
 import json
-import sqlite3
+import pymysql
+import connection
 
-try:
-    #Connection with sqlite3
-    sqliteConnection = sqlite3.connect('SQLite_Python.db')
-    cursor = sqliteConnection.cursor()
-    print("Database created and Successfully Connected to SQLite")
-
-    #Execute Drop query
-    cursor.execute("drop table person2")
-
-    #Create Table
-    sqlite_select_Query = "create table person2 (sin integer PRIMARY KEY AUTOINCREMENT, name varchar(200))"
-    cursor.execute(sqlite_select_Query)
-
-    #Execute multiple queries
-    operation = [(1, "Hardik"), (2, "Yash")]
-    cursor.executemany("INSERT INTO person2 VALUES(?, ?)", operation)
+url = 'https://www.googleapis.com/books/v1/volumes?q=love:keyes&key=AIzaSyCB4mblXymeFZnTJKzp409fWKh8QC8Ty5Y&maxResults=30'
 
 
-    #Fetch data from database
-    data = cursor.execute("SELECT * FROM person2").fetchall()
-    print("SQLite Database Version is: ", data)
-    # insert_stmt = (
-    #     "INSERT INTO employees (emp_no, first_name, last_name, hire_date) "
-    #     "VALUES (%s, %s, %s, %s)"
-    # )
-    # data = (2, 'Jane', 'Doe', datetime.date(2012, 3, 23))
-    # cursor.execute(insert_stmt, data)
-    #
-    # select_stmt = "SELECT * FROM employees WHERE emp_no = %(emp_no)s"
-    # cursor.execute(select_stmt, {'emp_no': 2})
+def read_api():
+    global url
+    api_result = requests.get(url)
+    api_response = api_result.json()
+    # api_data = json.dumps(api_response, indent=4)
+    # new_data = json.loads(api_data)
+    # for i in range(len(new_data)):
+    #     print(new_data['items'][i]['id'])
+
+    return api_response
 
 
-    cursor.close()
+def write_data(api_response):
+    try:
+        # Downloading json data into a file
+        data = json.dumps(api_response)
 
-except sqlite3.Error as error:
-    print("Error while connecting to sqlite", error)
-
-
-# params = {
-#     'access_key': 'dbf7c159c9b2868f6facff6675e35775'
-# }
-# result = requests.get('http://api.aviationstack.com/v1/flights', params)
-# #result = requests.get('https://developer.nrel.gov/api/alt-fuel-stations/v1.json?fuel_type=E85,ELEC&state=CA&limit=2&api_key=QXk4ANLmbHnN47NYHufiEdbpOLd4UuESri3mZT7C')
-#
-# data = json.loads(result.text)
-# print(data)
-# columns = ['pagination','total_results','station_counts']
-# for row in data:
-#     keys= tuple(row[c] for c in columns)
-#     cursor.execute('insert into Student values(?,?,?)',keys)
-#     print(f'{row["name"]} data inserted Succefully')
-#
-# connection.commit()
-# connection.close()
-
-url = "https://hotels4.p.rapidapi.com/v2/get-meta-data"
-
-headers = {
-	"X-RapidAPI-Key": "45ece162f9msh277df8c13051d12p1ec734jsn3ec541518ff1",
-	"X-RapidAPI-Host": "hotels4.p.rapidapi.com"
-}
-
-response = requests.request("GET", url, headers=headers)
+        file = open("api_data.json", "w")
+        file.write(data)
+        print("API data successfully downloaded!!")
+    except:
+        print("Error in File creation/ data insertion")
 
 
-
-print(response.text)
-
-
-
-
-
+def connect():
+    # # connect to MySQL
+    # #con = pymysql.connect(host = 'localhost',user = 'root',passwd = '',db = 'test')
+    cursor = connection.db1.cursor()
+    return cursor
 
 
+def read_data():
+    f = open("api_data.json", "r")
+    new_data = json.loads(f.read())
+    return new_data
 
+
+def validate_string(val=None):
+    if val != None:
+        if type(val) is int:
+            # for x in val:
+            #   print(x)
+            return str(val).encode('utf-8')
+        else:
+            return val
+    else:
+        return None
+
+
+def table_creation(cursor):
+    drop_book = "DROP TABLE IF EXISTS Book"
+
+    cursor.execute(drop_book)
+    cursor.execute("CREATE TABLE Book "
+                   "(BookId varchar(255) NOT NULL, "
+                   "selfLink varchar(255),"
+                   "PRIMARY KEY (BookId))")
+
+def data_insertion_into_table(new_data):
+    # parse json data to SQL insert
+    for i in range(len(new_data)):
+        print(new_data['items'][i]['id'], new_data['items'][i]['selfLink'])
+        bookId = validate_string(new_data['items'][i]['id'])
+        selfLink = validate_string(new_data['items'][i]['selfLink'])
+
+        cursor.execute("INSERT INTO Book (BookId, selfLink) VALUES (%s, %s)", (bookId, selfLink))
+    print('Data inserted successfully')
+    connection.db1.commit()
+
+if __name__ == '__main__':
+    # Read API data into JSON
+    json_data = read_api()
+
+    # Create a api_data.json file and put downloaded data into that file
+    write_data(json_data)
+
+    # Connect with DB
+    cursor = connect()
+
+    # Read data from downloaded file
+    data = read_data()
+
+    # Table creation
+    table_creation(cursor)
+
+    # insert data into table
+    data_insertion_into_table(data)
