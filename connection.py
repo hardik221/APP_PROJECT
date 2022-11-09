@@ -3,7 +3,7 @@ import mysql.connector as mysql
 # Authenticators
 host = "localhost"
 username = "root"
-password = "Hardik@123"
+password = "root"
 
 # mysql connection
 try:
