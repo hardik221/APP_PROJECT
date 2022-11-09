@@ -55,10 +55,7 @@ class Main:
 
 
 class DbCalls(Main):
-    def __int__(
-        self,
-        cursor,
-    ):
+    def __int__(self,cursor,):
         self.cursor = cursor
         self.main = Main()
 
@@ -139,15 +136,109 @@ class DbCalls(Main):
             "FOREIGN KEY (bookId) REFERENCES BookInfo(bookId))"
         )
 
+    # def fetchParameters(self, new_data):
     def data_insertion_into_table(self, new_data):
         # parse json data to SQL insert
-        type = url.split('?')[1].split('=')[1].split(':')[0]
+        type = url.split("?")[1].split("=")[1].split(":")[0]
+
         for i in range(len(new_data)):
-            print(new_data['items'][i]['id'], new_data['items'][i]['selfLink'])
-            bookId = main.validate_string(new_data['items'][i]['id'])
-            totalItem = main.validate_string(new_data['totalItems'])
-            cursor.execute("INSERT INTO Book (bookId, type, totalItems) VALUES (%s, %s, %s)", (bookId, type, totalItem))
-        print('Data inserted successfully')
+
+            bookId = main.validate_string(new_data[i]["id"])
+            totalItem = random.randint(1, 100)
+            etag = main.validate_string(new_data[i]["etag"])
+            selfLink = main.validate_string((new_data[i]["selfLink"]))
+            language = main.validate_string(new_data[i]["volumeInfo"]["language"])
+            isAvailablePDF = main.validate_string(
+                new_data[i]["accessInfo"]["pdf"]["isAvailable"]
+            )
+            vId = str(uuid.uuid4())
+            title = main.validate_string(new_data[i]["volumeInfo"]["title"])
+            try:
+                subtitle = main.validate_string(new_data[i]["volumeInfo"]["subtitle"])
+            except:
+                subtitle = "null"
+
+            try:
+                publishedDate = main.validate_string(
+                    new_data[i]["volumeInfo"]["publishedDate"]
+                )
+            except:
+                publishedDate = "null"
+
+            pId = str(uuid.uuid4())
+            try:
+                publisher = main.validate_string(new_data[i]["volumeInfo"]["publisher"])
+            except:
+                publisher = "Concordia University"
+
+            try:
+                description = main.validate_string(
+                    new_data[i]["volumeInfo"]["description"]
+                )
+            except:
+                description = "No description available"
+
+            sId = str(uuid.uuid4())
+            countryChoice = ["CA", "US", "IN", "GE", "UK", "AU"]
+            country = random.choice(countryChoice)
+            saleAbility = main.validate_string(new_data[i]["saleInfo"]["saleability"])
+            isEbook = main.validate_string(new_data[i]["saleInfo"]["isEbook"])
+            industryId = str(uuid.uuid4())
+            typeOfIdentifier = ""
+            identifier = ""
+            try:
+                for j in range(len(new_data[i]["volumeInfo"]["industryIdentifiers"])):
+                    try:
+                        typeOfIdentifier += (
+                            main.validate_string(
+                                new_data[i]["volumeInfo"]["industryIdentifiers"][j]["type"]
+                            )+ ", "
+                        )
+                        identifier += (
+                            main.validate_string(
+                                new_data[i]["volumeInfo"]["industryIdentifiers"][j]["identifier"]
+                            )+ ", "
+                        )
+                    except:
+                        typeOfIdentifier += ""
+                        identifier += ""
+            except:
+                pass
+
+            if typeOfIdentifier != "":
+                typeOfIdentifier = typeOfIdentifier[:-2]
+                identifier = identifier[:-2]
+
+            cursor.execute(
+                "INSERT INTO Book (bookId, type, totalItems) VALUES (%s, %s, %s)",
+                (bookId, type, totalItem),
+            )
+
+            cursor.execute(
+                "INSERT INTO BookInfo (bookId, etag, selfLink, language, isAvailablePDF) VALUES (%s, %s, %s, %s, %s)",
+                (bookId, etag, selfLink, language, isAvailablePDF),
+            )
+
+            cursor.execute(
+                "INSERT INTO VolumeInfo (vId, title, subtitle, publishedDate, bookId) VALUES (%s, %s, %s, %s, %s)",
+                (vId, title, subtitle, publishedDate, bookId),
+            )
+
+            cursor.execute(
+                "INSERT INTO Publish (pId, publisher, publishedDate, description, bookId) VALUES (%s, %s, %s, %s, %s)",
+                (pId, publisher, publishedDate, description, bookId),
+            )
+
+            cursor.execute(
+                "INSERT INTO SaleInfo (sId, country, saleAbility, isEbook, bookId) VALUES (%s, %s, %s, %s, %s)",
+                (sId, country, saleAbility, isEbook, bookId),
+            )
+
+            cursor.execute(
+                "INSERT INTO IndustryIdentifier (industryId, type, identifier, bookId) VALUES (%s, %s, %s, %s)",
+                (industryId, typeOfIdentifier, identifier, bookId),
+            )
+        print("Data inserted successfully into VolumeInfo")
 
         connection.db1.commit()
 
