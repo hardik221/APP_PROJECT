@@ -1,25 +1,25 @@
 import requests
 import json
-import pymysql
 import connection
 import random
 import uuid
 params_subject = ['love', 'feminism', 'inspirational', 'authors', 'fiction', 'poetry', 'fantasy', 'romance']
 
-url = f'https://www.googleapis.com/books/v1/volumes?q={str(random.choice(params_subject))}:keyes&key=AIzaSyCB4mblXymeFZnTJKzp409fWKh8QC8Ty5Y&maxResults=40'
-
 class Main:
     def read_api(self):
         global url
-        api_result = requests.get(url)
+        dbCalls = DbCalls()
+        dbCalls.table_creation(self.connect())
+        for item in params_subject:
+            url = f'https://www.googleapis.com/books/v1/volumes?q={str(item)}:keyes&key=AIzaSyCB4mblXymeFZnTJKzp409fWKh8QC8Ty5Y&maxResults=40'
 
-        api_response = api_result.json()
-        # api_data = json.dumps(api_response, indent=4)
-        # new_data = json.loads(api_data)
-        # for i in range(len(new_data)):
-        #     print(new_data['items'][i]['id'])
-        print("-----", api_response["items"][0])
-        return api_response["items"]
+            api_result = requests.get(url)
+
+            api_response = api_result.json()
+            self.write_data(api_response)
+            data = self.read_data()
+
+            dbCalls.data_insertion_into_table(data, self.connect())
 
     def write_data(self, api_response):
         try:
@@ -32,15 +32,14 @@ class Main:
             print("Error in File creation/ data insertion")
 
     def connect(self):
-        # # connect to MySQL
-        # #con = pymysql.connect(host = 'localhost',user = 'root',passwd = '',db = 'test')
+        # connect to MySQL
         cursor = connection.db1.cursor()
         return cursor
 
     def read_data(self):
         f = open("api_data.json", "r")
         new_data = json.loads(f.read())
-        return new_data
+        return new_data['items']
 
     def validate_string(self, val=""):
         if val != "":
@@ -55,7 +54,7 @@ class Main:
 
 
 class DbCalls(Main):
-    def __int__(self,cursor,):
+    def __int__(self, cursor):
         self.cursor = cursor
         self.main = Main()
 
@@ -78,6 +77,7 @@ class DbCalls(Main):
         cursor.execute(
             "CREATE TABLE Book "
             "(bookId varchar(255) NOT NULL, "
+            "bookCode varchar(255), "
             "type varchar(30), "
             "totalItems int, "
             "PRIMARY KEY(bookId))"
@@ -97,7 +97,7 @@ class DbCalls(Main):
             "CREATE TABLE VolumeInfo "
             "(vId varchar(255) NOT NULL, "
             "title varchar(255), "
-            "subtitle varchar(255), "
+            "subtitle varchar(1000), "
             "publishedDate varchar(255), "
             "bookId varchar(255), "
             "PRIMARY KEY(vId), "
@@ -136,14 +136,15 @@ class DbCalls(Main):
             "FOREIGN KEY (bookId) REFERENCES BookInfo(bookId))"
         )
 
-    # def fetchParameters(self, new_data):
-    def data_insertion_into_table(self, new_data):
+    def data_insertion_into_table(self, new_data, cursor):
         # parse json data to SQL insert
         type = url.split("?")[1].split("=")[1].split(":")[0]
 
         for i in range(len(new_data)):
 
-            bookId = main.validate_string(new_data[i]["id"])
+
+            bookId = str(uuid.uuid4())
+            bookCode = main.validate_string(new_data[i]["id"])
             totalItem = random.randint(1, 100)
             etag = main.validate_string(new_data[i]["etag"])
             selfLink = main.validate_string((new_data[i]["selfLink"]))
@@ -210,8 +211,8 @@ class DbCalls(Main):
                 identifier = identifier[:-2]
 
             cursor.execute(
-                "INSERT INTO Book (bookId, type, totalItems) VALUES (%s, %s, %s)",
-                (bookId, type, totalItem),
+                "INSERT INTO Book (bookId, bookCode, type, totalItems) VALUES (%s, %s, %s, %s)",
+                (bookId, bookCode, type, totalItem),
             )
 
             cursor.execute(
@@ -238,24 +239,18 @@ class DbCalls(Main):
                 "INSERT INTO IndustryIdentifier (industryId, type, identifier, bookId) VALUES (%s, %s, %s, %s)",
                 (industryId, typeOfIdentifier, identifier, bookId),
             )
-        print("Data inserted successfully into VolumeInfo")
 
         connection.db1.commit()
+        print("Data inserted successfully into all the table")
 
 
 if __name__ == "__main__":
-    # Read API data into JSON
     main = Main()
-    json_data = main.read_api()
-    # Create a api_data.json file and put downloaded data into that file
-    main.write_data(json_data)
+    dbCalls = DbCalls()
+
+    # Read API data into JSON
+    main.read_api()
+
     # Connect with DB
     cursor = main.connect()
-    # Read data from downloaded file
-    data = main.read_data()
-    # Table creation
-    dbCalls = DbCalls()
-    dbCalls.table_creation(cursor)
 
-    # insert data into table
-    dbCalls.data_insertion_into_table(data)
