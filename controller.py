@@ -17,14 +17,15 @@ class Main:
 
 
                 # Part 5: Simplifying Method Calls       Refactoring strategy
-                self.write_data(api_response)
-                data = self.read_data()
+                self.writeData(api_response)
+                data = self.readData()
                 tdg.dataInsertionIntoTable(data, item)
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
 
-    def write_data(self, api_response):
+    def writeData(self, api_response):
         try:
             # Downloading json data into a file
             data = json.dumps(api_response)
@@ -34,7 +35,7 @@ class Main:
         except:
             print("Error in File creation/ data insertion")
 
-    def read_data(self):
+    def readData(self):
         f = open("../api_data.json", "r")
 
         # Inline Temp Refactoring
@@ -49,6 +50,7 @@ if __name__ == "__main__":
     if tdg.checkTableExists() == False:
         # Read API data into JSON
         tdg.createTables()
+        print("Fetching API data...")
         var = main.readApiAndInsertData(tdg)
         if var:
             print("*************************************************\n"
