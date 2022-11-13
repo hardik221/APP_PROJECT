@@ -115,7 +115,7 @@ class TDG():
 
         return bookId, title, pageCount, isEbook, pId, publisher, publishedDate, publishedDate, description
 
-    def data_insertion_into_table(self, new_data, bookType):
+    def dataInsertionIntoTable(self, new_data, bookType):
 
         # insert data into BookType Table
         typeId = str(uuid.uuid4())[:8]
