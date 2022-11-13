@@ -31,10 +31,8 @@ class Connector:
                 print(e)
                 print("Failed to connected....")
             Connector.count = 1
-            print("---->1", Connector.db)
             return Connector.db
         else:
-            print("---->2", Connector.db)
             return Connector.db
 
 
