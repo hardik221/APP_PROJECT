@@ -117,7 +117,7 @@ if __name__ == "__main__":
                 id = input("Enter id number: ")
 
                 columns = tdg.getColumns(tableName)
-                print(columns)
+                print(columns[1:])
                 var = input("Enter field you want to update: ")
                 new_var = input("Enter new Value you want to replace with existing value: ")
                 tdg.update(tableName, var, new_var, id)
