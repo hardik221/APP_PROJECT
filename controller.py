@@ -1,22 +1,25 @@
 from connection import Connector
 import requests
 import json
+
 global url
 global db
 from MainGateway import TDG
 
-params_subject = ['love', 'feminism', 'inspirational', 'authors', 'fiction', 'poetry', 'fantasy', 'romance']
+params_subject = ['love', 'feminism', 'inspirational', 'authors', 'fiction',
+                  'poetry', 'fantasy', 'romance']
+
 
 class Main:
     def readApiAndInsertData(self, tdg):
         try:
             for item in params_subject:
-                url = f'https://www.googleapis.com/books/v1/volumes?q={str(item)}:keyes&key=AIzaSyCB4mblXymeFZnTJKzp409fWKh8QC8Ty5Y&maxResults=5'
+                url = f'https://www.googleapis.com/books/v1/volumes?q={str(item)}' \
+                      f':keyes&key=AIzaSyCB4mblXymeFZnTJKzp409fWKh8QC8Ty5Y&maxResults=5'
                 api_result = requests.get(url)
                 api_response = api_result.json()
 
-
-                # Part 5: Simplifying Method Calls       Refactoring strategy
+                # Part 5: Simplifying Method Calls Refactoring strategy
                 self.__writeData(api_response)
                 data = self.__readData()
                 tdg.dataInsertionIntoTable(data, item)
@@ -41,6 +44,7 @@ class Main:
         # Inline Temp Refactoring
         return json.loads(f.read())['items']
 
+
 if __name__ == "__main__":
     c = Connector()
     db = c.create_connection()
@@ -52,6 +56,7 @@ if __name__ == "__main__":
         tdg.createTables()
         print("Fetching API data...")
         var = main.readApiAndInsertData(tdg)
+
         if var:
             print("*************************************************\n"
                   "* Data inserted successfully into all the table *\n"
@@ -100,7 +105,6 @@ if __name__ == "__main__":
 
                 tableName = 'publish'
                 tdg.display(publish_data, tableName)
-
 
             case 3:
                 # Update By Id
