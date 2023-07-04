@@ -3,8 +3,6 @@ import random
 from connection import Connector
 from prettytable import PrettyTable
 
-
-
 global db
 class TDG():
     def __init__(self):
